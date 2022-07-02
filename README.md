@@ -9,6 +9,7 @@
   - mass_spectra.json
 
 ### python prepare_mass_spectra.py
+  - prepare
 
 
 ### python obtain_smiles.py
