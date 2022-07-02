@@ -1,17 +1,14 @@
 import torch
 import math
 import torch.nn as nn
-from rdkit import Chem
-from rdkit import rdBase
-rdBase.DisableLog('rdApp.*')
 
 class GELU(nn.Module):
-    '''高斯误差线性单元激活函数'''
+    '''activate function'''
     def forward(self, x):
         return 0.5 * x * (1 + torch.tanh(math.sqrt(2 / math.pi) * (x + 0.044715 * torch.pow(x, 3))))
 
 class PositionwiseFeedForward(nn.Module):
-    '''考虑位置信息FFN'''
+    '''Positionwise FFN'''
     def __init__(self, d_model, d_ff, dropout=0.1):
         super(PositionwiseFeedForward, self).__init__()
         self.w_1 = nn.Linear(d_model, d_ff)
@@ -23,7 +20,6 @@ class PositionwiseFeedForward(nn.Module):
         return self.w_2(self.dropout(self.activation(self.w_1(x))))
     
 class LayerNorm(nn.Module):
-    '''归一化层'''
     def __init__(self, features, eps=1e-6):
         super(LayerNorm, self).__init__()
         self.a_2 = nn.Parameter(torch.ones(features))

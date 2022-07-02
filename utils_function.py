@@ -3,13 +3,9 @@ import math
 import numpy as np
 from d2l import torch as d2l
 import torch
-import torch.nn as nn
 from rdkit import Chem
-from rdkit import rdBase
-rdBase.DisableLog('rdApp.*')
 import collections
-import urllib
-from urllib import error
+from urllib import error, request
 
 from build_vocab import Vocab
 
@@ -37,8 +33,8 @@ def get_redirect_url(query, html_loc, filename):
     headers = {
         'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.60 Safari/537.36 Edg/100.0.1185.29"}
     try :
-        req=urllib.request.Request(url, headers=headers) 
-        res=urllib.request.urlopen(req) 
+        req = request.Request(url, headers=headers) 
+        res = request.urlopen(req) 
         # try:                                       
         #     buffer = res.read()
         # except http_client.IncompleteRead as e:
@@ -63,31 +59,35 @@ def train_test_split(data, test_size=0.1):
     train_length = int(len(data)*(1-test_size))
     return data[:train_length,:], data[train_length:,:]
 
-def read_smiles():
+def read_smiles(smiles_file):
     '''read smiles'''
-    current_path = os.getcwd()
-    with open(os.path.join(current_path, 'data/smiles.txt'), 'r', encoding='utf-8') as f_smiles:
+    with open(smiles_file, 'r', encoding='utf-8') as f_smiles:
         lines = f_smiles.readlines()
     smiles = [smi.replace('\n', '') for smi in lines]
     return np.array(smiles)
 
+# def write_smiles(smiles, smiles_file):
+#     """
+#     Write a list of SMILES to a line-delimited file.
+#     """
+#     # write sampled SMILES
+#     with open(smiles_file, 'w') as f:
+#         for sm in smiles:
+#             _ = f.write(sm + '\n')
+
 def tokenize(lines, type_data='smiles', token='word'):
     '''split text as word or char'''
     if token == 'word':
-        if type_data == 'smiles':
-            return [line.split() for line in lines]
-        else:
-            return [line for line in lines]
+        return [line for line in lines]
     elif token == 'char':
         return [list(line) for line in lines]
-        # return [list[line] for line in lines]
     else:
         print(f"Error: unkown token type - {token}. ")
 
 def new_lines(lines, type_data='smiles'):
     if type_data == 'smiles':
         tokens = tokenize(lines, token='word')
-        new_tokens = [split(split(tokens[line])).split() + ['<eos>'] for line in range(len(lines))]
+        new_tokens = [split_smiles(split_smiles(tokens[line])).split() + ['<eos>'] for line in range(len(lines))]
     else:
         new_tokens = [lines[line] for line in range(len(lines))]
     return new_tokens
@@ -156,7 +156,6 @@ def predict_seq2seq(net, src_sentence, src_vocab, tgt_vocab, num_steps, device, 
         output_seq.append(pred)
     return ' '.join(tgt_vocab.to_tokens(output_seq)), attention_weight_seq
 
-
 def bleu(pred_seq, label_seq, k): 
     '''calculate BLEU'''
     pred_tokens, label_tokens = pred_seq.split(' '), label_seq.split(' ')
@@ -172,7 +171,6 @@ def bleu(pred_seq, label_seq, k):
                 label_subs[' '.join(pred_tokens[i: i + n])] -= 1
         score *= math.pow(num_matches / (len_pred - n + 1), math.pow(0.5, n))
     return score
-
 
 def split_smiles(sm):
     '''
@@ -308,20 +306,3 @@ def split_smiles(sm):
     if i == len(sm)-1:
         arr.append(sm[i])
     return ' '.join(arr) 
-
-
-def sample(msms):
-    '''Sample SMILES from probablistic distribution'''
-    ret = []
-    for msm in msms:
-        ret.append(torch.multinomial(msm.exp(), 1).squeeze())
-    return torch.stack(ret)
-
-def validity(smiles):
-    '''validation of smiles'''
-    loss = 0
-    for sm in smiles:
-        mol = Chem.MolFromSmiles(sm)
-        if mol is None:
-            loss += 1
-    return 1-loss/len(smiles)

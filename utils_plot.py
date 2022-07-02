@@ -1,12 +1,14 @@
 
-import matplotlib as mpl
-mpl.use('agg')
-import matplotlib.pyplot as plt
 import os
 import numpy as np
+import matplotlib.pyplot as plt
 
 from build_vocab import Vocab
 
+fig_loc = os.getcwd()
+new_fig_loc = os.path.join(fig_loc, 'figure')
+if not os.path.exists(new_fig_loc): 
+    os.mkdir(new_fig_loc)
 
 def plot_token_frequency(seq_lengths, name):
     plt.figure()
@@ -15,7 +17,7 @@ def plot_token_frequency(seq_lengths, name):
     plt.xlabel('# tokens per sequence')
     plt.ylabel('frequency: n(x)')
     # plt.yscale('log')
-    plt.savefig(os.path.join('figure', f'token_frequency_{name}.png'))
+    plt.savefig(os.path.join(new_fig_loc, f'token_frequency_{name}.png'))
     plt.show()
 
 def plot_bigram(corpus, vocab, name):
@@ -29,7 +31,6 @@ def plot_bigram(corpus, vocab, name):
         corpus[:-2], corpus[1:-1], corpus[2:])]
     trigram_vocab = Vocab(trigram_tokens)
     print(f"trigram_vocab: {trigram_vocab.token_freqs[:10]}")
-    print(trigram_vocab.token_freqs[:10])
 
     bigram_freqs = [freq for token, freq in bigram_vocab.token_freqs]
     trigram_freqs = [freq for token, freq in trigram_vocab.token_freqs]
@@ -44,5 +45,5 @@ def plot_bigram(corpus, vocab, name):
     plt.yscale('log')
     plt.xscale('log')
     plt.legend(handles=[h1, h2, h3], labels=['unigram', 'bigram', 'trigram'], loc='upper right')
-    plt.savefig(os.path.join('figure', f'token_frequency_diffrent_{name}.png'))
+    plt.savefig(os.path.join(new_fig_loc, f'token_frequency_diffrent_{name}.png'))
     plt.show()

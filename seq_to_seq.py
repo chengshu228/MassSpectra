@@ -4,7 +4,8 @@ import torch
 from torch import nn
 from d2l import torch as d2l
 
-#@save
+from utils_function import split_smiles
+
 class Seq2SeqEncoder(d2l.Encoder):
     """用于序列到序列学习的循环神经网络编码器"""
     def __init__(self, vocab_size, embed_size, num_hiddens, num_layers,
@@ -25,14 +26,6 @@ class Seq2SeqEncoder(d2l.Encoder):
         # output的形状:(num_steps,batch_size,num_hiddens)
         # state[0]的形状:(num_layers,batch_size,num_hiddens)
         return output, state
-
-
-# encoder = Seq2SeqEncoder(vocab_size=10, embed_size=8, num_hiddens=16, num_layers=2)
-# encoder.eval()
-# X = torch.zeros((4, 7), dtype=torch.long)
-# output, state = encoder(X)
-# print(output.shape)
-# print(state.shape)
 
 class Seq2SeqDecoder(d2l.Decoder):
     """用于序列到序列学习的循环神经网络解码器"""
@@ -59,13 +52,6 @@ class Seq2SeqDecoder(d2l.Decoder):
         # state[0]的形状:(num_layers,batch_size,num_hiddens)
         return output, state
 
-# decoder = Seq2SeqDecoder(vocab_size=10, embed_size=8, num_hiddens=16, num_layers=2)
-# decoder.eval()
-# state = decoder.init_state(encoder(X))
-# output, state = decoder(X, state)
-# print(output.shape, state.shape)
-
-#@save
 def sequence_mask(X, valid_len, value=0):
     """在序列中屏蔽不相关的项"""
     maxlen = X.size(1)
@@ -74,14 +60,6 @@ def sequence_mask(X, valid_len, value=0):
     X[~mask] = value
     return X
 
-# X = torch.tensor([[1, 2, 3], [4, 5, 6]])
-# sequence_mask(X, torch.tensor([1, 2]))
-
-# X = torch.ones(2, 3, 4)
-# sequence_mask(X, torch.tensor([1, 2]), value=-1)
-
-
-#@save
 class MaskedSoftmaxCELoss(nn.CrossEntropyLoss):
     """带遮蔽的softmax交叉熵损失函数"""
     # pred的形状：(batch_size,num_steps,vocab_size)
@@ -96,12 +74,6 @@ class MaskedSoftmaxCELoss(nn.CrossEntropyLoss):
         weighted_loss = (unweighted_loss * weights).mean(dim=1)
         return weighted_loss
 
-
-# loss = MaskedSoftmaxCELoss()
-# loss(torch.ones(3, 4, 10), torch.ones((3, 4), dtype=torch.long),
-#      torch.tensor([4, 2, 0]))
-
-#@save
 def train_seq2seq(net, data_iter, lr, num_epochs, tgt_vocab, device):
     """训练序列到序列模型"""
     def xavier_init_weights(m):
@@ -141,16 +113,6 @@ def train_seq2seq(net, data_iter, lr, num_epochs, tgt_vocab, device):
         print(f'epoch: {epoch}: loss {metric[0] / metric[1]:.3f}, {metric[1] / timer.stop():.1f} '
             f'tokens/sec on {str(device)}')
 
-# embed_size, num_hiddens, num_layers, dropout = 32, 32, 2, 0.1
-# batch_size, num_steps = 64, 10
-# lr, num_epochs, device = 0.005, 300, d2l.try_gpu()
-
-# train_iter, src_vocab, tgt_vocab = d2l.load_data_nmt(batch_size, num_steps)
-# encoder = Seq2SeqEncoder(len(src_vocab), embed_size, num_hiddens, num_layers, dropout)
-# decoder = Seq2SeqDecoder(len(tgt_vocab), embed_size, num_hiddens, num_layers, dropout)
-# net = d2l.EncoderDecoder(encoder, decoder)
-# train_seq2seq(net, train_iter, lr, num_epochs, tgt_vocab, device)
-
 
 def predict_seq2seq(net, src_sentence, src_vocab, tgt_vocab, src_num_steps, tgt_num_steps, device, save_attention_weights=False):
     """序列到序列模型的预测"""
@@ -168,9 +130,6 @@ def predict_seq2seq(net, src_sentence, src_vocab, tgt_vocab, src_num_steps, tgt_
     dec_X = torch.unsqueeze(torch.tensor(
         [tgt_vocab['<bos>']], dtype=torch.long, device=device), dim=0)
     print(dec_X)
-    # dec_X = torch.unsqueeze(torch.tensor(
-    #     [tgt_vocab], dtype=torch.long, device=device), dim=0)
-    # print(dec_X)
     output_seq, attention_weight_seq = [], []
     for _ in range(tgt_num_steps):
         Y, dec_state = net.decoder(dec_X, dec_state)
@@ -188,16 +147,11 @@ def predict_seq2seq(net, src_sentence, src_vocab, tgt_vocab, src_num_steps, tgt_
 
 
 def bleu(pred_seq, label_seq, k):  #@save
-    """计算BLEU"""
     print(f"pred_seq: {pred_seq}, \nlabel_seq: {label_seq}")
     pred_tokens = pred_seq.split(' ')
     # pred_tokens, label_tokens = pred_seq.split(' '), label_seq.split(' ')
-    from utils_function import split
     # pred_tokens = split(split(pred_seq)).split()
     label_tokens = split(split(label_seq)).split()
-    # print(pred_tokens[:])
-    # print(label_tokens[:])
-    # print(f"pred_tokens: {pred_tokens}, \nlabel_tokens: {label_tokens}")
 
     len_pred, len_label = len(pred_tokens), len(label_tokens)
     score = math.exp(min(0, 1 - len_label / len_pred))
