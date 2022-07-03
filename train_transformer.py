@@ -58,15 +58,15 @@ decoder = TransformerDecoder(
 net = d2l.EncoderDecoder(encoder, decoder)
 d2l.train_seq2seq(net, train_iter, lr, num_epochs, tgt_vocab, device)
 
-src_test = new_mass_spectras[int(len(tensor_mass_spectra)*split_ratio):]
-tgt_test = smiles[int(len(tensor_smiles)*split_ratio):]
+src_test = new_mass_spectras[split_train:]
+tgt_test = smiles[split_train:]
 
 test_iter, src_vocab, tgt_vocab = load_data_nmt(
-    batch_size=batch_size, source=new_mass_spectras[split_ratio:], target=smiles[split_ratio:], 
+    batch_size=batch_size, source=new_mass_spectras[split_train:], target=smiles[split_train:], 
     src_num_steps=src_num_steps, tgt_num_steps=tgt_num_steps)
 
 for src, tgt in zip(src_test, tgt_test):
-    translation, attention_weight_seq = d2l.predict_seq2seq(
+    translation, attention_weight_seq = predict_seq2seq(
         net, src, src_vocab, tgt_vocab, src_num_steps, tgt_num_steps, device)
     print(f'{src} => {translation}, bleu {bleu(translation, tgt, k=2):.3f}')
 

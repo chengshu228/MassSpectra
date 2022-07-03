@@ -151,7 +151,9 @@ def bleu(pred_seq, label_seq, k):  #@save
     pred_tokens = pred_seq.split(' ')
     # pred_tokens, label_tokens = pred_seq.split(' '), label_seq.split(' ')
     # pred_tokens = split(split(pred_seq)).split()
-    label_tokens = split(split(label_seq)).split()
+    # print(split_smiles(label_seq))
+    # print(split_smiles(split_smiles(label_seq)))
+    label_tokens = split_smiles(label_seq).split()
 
     len_pred, len_label = len(pred_tokens), len(label_tokens)
     score = math.exp(min(0, 1 - len_label / len_pred))

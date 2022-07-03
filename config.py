@@ -1,7 +1,7 @@
 from d2l import torch as d2l
 
 data_loc = r'/data/cshu/mass_spectra/smiles_intensity'
-device = d2l.try_gpu()
+device = d2l.try_all_gpus()
 
 pad_ms = 100
 pad_smiles = 200
