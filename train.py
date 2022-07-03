@@ -12,8 +12,6 @@ from prepare_smiles import output_smiles
 from seq_to_seq import Seq2SeqEncoder, Seq2SeqDecoder, train_seq2seq, predict_seq2seq, bleu
 import config
 
-
-
 batch_size = config.batch_size
 split_ratio = config.split_ratio
 src_num_steps = config.src_num_steps
