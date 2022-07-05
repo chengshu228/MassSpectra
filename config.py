@@ -6,6 +6,7 @@ device = d2l.try_gpu()
 pad_ms = 100
 pad_smiles = 200
 
+
 src_num_steps = 100
 tgt_num_steps = 100
 
