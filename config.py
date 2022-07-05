@@ -1,7 +1,7 @@
 from d2l import torch as d2l
 
 data_loc = r'/data/cshu/mass_spectra/smiles_intensity'
-device = d2l.try_all_gpus()
+device = d2l.try_gpu()
 
 pad_ms = 100
 pad_smiles = 200
@@ -15,7 +15,7 @@ num_layers = 2
 dropout =  0.1
 batch_size = 8
 lr = 0.005
-num_epochs = 1
+num_epochs = 100
 
 split_ratio = 0.8
 

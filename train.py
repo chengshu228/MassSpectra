@@ -33,26 +33,17 @@ train_iter, src_vocab, tgt_vocab = load_data_nmt(
     batch_size=batch_size, source=new_mass_spectras, target=smiles, 
     src_num_steps=src_num_steps, tgt_num_steps=tgt_num_steps)
 
-for X, X_valid_len, Y, Y_valid_len in train_iter:
-    # print('X:', X.type(torch.int32))
-    print('Y:', Y.type(torch.int32))
-    # print('X的有效长度:', X_valid_len)
-    # print('Y:', Y.type(torch.int32))
-    # print('Y的有效长度:', Y_valid_len)
-    break
-
-
 encoder = Seq2SeqEncoder(len(src_vocab), embed_size, num_hiddens, num_layers, dropout)
 decoder = Seq2SeqDecoder(len(tgt_vocab), embed_size, num_hiddens, num_layers, dropout)
 net = d2l.EncoderDecoder(encoder, decoder)
 
 train_seq2seq(net, train_iter, lr, num_epochs, tgt_vocab,  device)
 
-src_test = new_mass_spectras[int(len(tensor_mass_spectra)*split_ratio):]
-tgt_test = smiles[int(len(tensor_smiles)*split_ratio):]
+src_test = new_mass_spectras[split_train:]
+tgt_test = smiles[split_train:]
 
 test_iter, src_vocab, tgt_vocab = load_data_nmt(
-    batch_size=batch_size, source=new_mass_spectras[split_ratio:], target=smiles[split_ratio:], 
+    batch_size=batch_size, source=new_mass_spectras[split_train:], target=smiles[split_train:], 
     src_num_steps=src_num_steps, tgt_num_steps=tgt_num_steps)
 
 for src, tgt in zip(src_test, tgt_test):
